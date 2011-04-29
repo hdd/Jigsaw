@@ -89,7 +89,7 @@ class NodeItem(QtGui.QGraphicsItem ):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 1))
         painter.setBrush(QtGui.QBrush(QtCore.Qt.gray, QtCore.Qt.SolidPattern))   
-        painter.drawRoundedRect(self.rect,10,10)
+        painter.drawRoundedRect(self.rect,4,4)
         painter.setFont(QtGui.QFont("arial",4,3))
                 
         node_text=self.name
@@ -100,7 +100,8 @@ class NodeItem(QtGui.QGraphicsItem ):
 class NodeScene(QtGui.QGraphicsScene):
     
     itemSelected = QtCore.pyqtSignal(QtGui.QGraphicsItem)
-
+    itemInserted = QtCore.pyqtSignal(NodeItem)
+    
     def __init__(self,parent=None):
         super(NodeScene,self).__init__(parent)
         self.line=None
@@ -136,13 +137,6 @@ class NodeScene(QtGui.QGraphicsScene):
             self.addItem(self.line)
             self.line_mode=True
             
-        elif (mouseEvent.button() == QtCore.Qt.MidButton):
-            log.debug("adding a new node")
-            item = NodeItem()
-            self.addItem(item)
-            item.setPos(mouseEvent.scenePos())
-            
-            self.itemInserted.emit(item)
         else:
             log.debug("left click mouse Press event")
             self.line_mode=False
@@ -199,33 +193,56 @@ class NodeScene(QtGui.QGraphicsScene):
                 
         self.line = None
         super(NodeScene, self).mouseReleaseEvent(mouseEvent)
-                                                                          
-class NodeView(QtGui.QGraphicsView):
-    def __init__(self,parent=None):
-        super(NodeView,self).__init__(parent)
-        self.scene = NodeScene(parent=self)
-        self.scene.setItemIndexMethod(QtGui.QGraphicsScene.NoIndex)
-        self.scene.setSceneRect(-200, -200, 400, 400)
-                
-        layout = QtGui.QVBoxLayout()
-        self.setLayout(layout)
-        self.setScene(self.scene)
+
+                                
+class DrawQt(QtGui.QGraphicsView):
+    def __init__(self, Graph=None,parent=None):
+        super(DrawQt,self).__init__(parent)
+        log.debug("init DrawQt")
         
-    def deleteItem(self):
-        for item in self.scene.selectedItems():
-            if isinstance(item, ConnectionItem):
-                item.removeArrows()
-            self.scene.removeItem(item)
- 
-    def sceneScaleChanged(self, scale):
-        newScale = scale.left(scale.indexOf("%")).toDouble()[0] / 100.0
-        oldMatrix = self.view.matrix()
-        self.view.resetMatrix()
-        self.view.translate(oldMatrix.dx(), oldMatrix.dy())
-        self.view.scale(newScale, newScale)
+        self.__nodes=[]
+        self.__connections=[]
+        
+        self.__graph=Graph
+        self.__scene=None
+        
+        self.__layout = QtGui.QVBoxLayout()
+        self.setLayout(self.__layout)
+        
+        self.__build_nodes()
+        
+    def __build_nodes(self):
+        self.__create_qtscene()
+        self.__add_nodes()
+        self.__add_connections()
+                
+    def __create_qtscene(self):
+        self.__scene = NodeScene(parent=self)
+        self.setScene(self.__scene)     
+    
+    def __add_nodes(self):
+        nodes = self.__graph.nodes()
+        for n in nodes:
+            if n:
+                log.debug("creating node %s"%n)
+                job_node = NodeItem(drq_job_object=n)
+                self.__graph.node[n]["_qt_item"]=job_node
+                
+                self.__scene.addItem(job_node)
+                self.__nodes.append(job_node)
+    
+    def __add_connections(self):
+        edges=self.__graph.edges()
+        for e in edges:
+            if e:
+                log.debug(e)
+                source_node = self.__graph.node[e[0]]["_qt_item"]
+                dest_node= self.__graph.node[e[1]]["_qt_item"]
+                connection = ConnectionItem(source_node,dest_node)
+                self.__scene.addItem(connection)
 
     def wheelEvent(self, event):
-        self.scaleView(math.pow(2.0, -event.delta() / 240.0))
+        self.scaleView(math.pow(2.0, event.delta() / 240.0))
         
     def scaleView(self, scaleFactor):
         factor = self.matrix().scale(scaleFactor, scaleFactor).mapRect(QtCore.QRectF(0, 0, 1, 1)).width()
@@ -234,26 +251,18 @@ class NodeView(QtGui.QGraphicsView):
             return
 
         self.scale(scaleFactor, scaleFactor)
-
-    def add_node(self,drq_job_object):
-        log.debug("adding node...%s"%drq_job_object)
-        job_node = NodeItem(drq_job_object=drq_job_object)
-        self.scene.addItem(job_node)
-                                            
-        
+                
 class NodeViewer(QtGui.QDialog):
     def __init__(self,parent=None):
         super(NodeViewer,self).__init__(parent)
         self.layout = QtGui.QVBoxLayout()
         self.setLayout(self.layout)
-        self.view = NodeView(parent=self)
-        icon = QtGui.QLabel()
-        self.layout.addWidget(icon)
-        self.layout.addWidget(self.view)
-        self.setWindowTitle("DrQueue Node Viewer")
-    
-    def add_node(self,drq_job_object):
-        self.view.add_node(drq_job_object)
+        self.setWindowTitle("Node Viewer")
+
+        
+    def add_graph(self,G):
+        self.view = DrawQt(Graph=G,parent=self)
+        self.layout.addWidget(self.view)    
     
                
 def main():
