@@ -97,12 +97,12 @@ class ConnectionItem(QtGui.QGraphicsPathItem ):
         
         #painter.drawEllipse(line.p2(),3,3)
         
-        painter.drawEllipse(new_dst_pos,5,5)
+        painter.drawEllipse(new_dst_pos,4,4)
         
         painter.setBrush(QtCore.Qt.black)
         painter.drawPolygon(QtGui.QPolygonF([line.p2(), destArrowP1, destArrowP2]))
         
-        painter.drawEllipse(new_src_pos,5,5)
+        painter.drawEllipse(new_src_pos,4,4)
         
         super(ConnectionItem,self).paint( painter, option, widget)
         

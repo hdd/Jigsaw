@@ -42,25 +42,8 @@ def DRAW_GRAPH():
     G.add_node(F)
     
     G.add_edge(B,E)
-    G.add_edge(D,F)      
-#     
-#    G.add_node(A1)
-#
-#    G.add_node(B1)
-#    G.add_edge(A,B1)   
-#    
-#    G.add_node(C1)
-#    G.add_edge(A1,C1)      
-#    
-#    G.add_node(D1)
-#    G.add_edge(B1,D1)
-#
-#    G.add_node(E1)
-#    G.add_node(F1)
-#    
-#    G.add_edge(B1,E1)
-#    G.add_edge(D1,F1)  
-
+    G.add_edge(D,F)
+    
     return G
 
 
@@ -74,7 +57,7 @@ def main():
     dialog = nd.NodeViewer()    
     G=DRAW_GRAPH()
     dialog.add_graph(G)  
-    
+    dialog.add_graph(G)      
     dialog.show()
     sys.exit(app.exec_())
 
