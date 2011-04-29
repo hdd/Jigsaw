@@ -15,9 +15,16 @@ import PyQt4.QtGui as QtGui
 import PyQt4.QtCore as QtCore
       
 class ConnectionItem(QtGui.QGraphicsPathItem ):
-
+        
+    Pi = math.pi
+    TwoPi = 2.0 * Pi
+    Type = QtGui.QGraphicsItem.UserType + 2
+    
     def __init__(self,source_node =None, dest_node=None,parent=None):
         super(ConnectionItem,self).__init__(parent)
+        self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
+        
+        self.arrowSize = 10.0
         
         self.sourcePoint = QtCore.QPointF()
         self.destPoint = QtCore.QPointF()        
@@ -28,20 +35,45 @@ class ConnectionItem(QtGui.QGraphicsPathItem ):
         self.source_node=source_node
         self.dest_node=dest_node
         self.update()
-        self.setZValue(-100000)     
+        self.setZValue(-10000)     
+        self.adjust()
+        
+    def adjust(self):
+        if not self.source_node or not self.dest_node:
+            return
+
+        line = QtCore.QLineF(self.mapFromItem(self.source_node, 0, 0),
+                self.mapFromItem(self.dest_node, 0, 0))
+        length = line.length()
+
+        if length == 0.0:
+            return
+
+        edgeOffset = QtCore.QPointF((line.dx() * 10) / length,
+                (line.dy() * 10) / length)
+
+        self.prepareGeometryChange()
+        self.sourcePoint = line.p1() + edgeOffset
+        self.destPoint = line.p2() - edgeOffset
+
          
     def paint(self, painter, option, widget):
+        
+        if not self.source_node or not self.dest_node:
+            return 
+        
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 1))
         
-        # get the node position of the attribute         
+        # get the node position of the attribute
         nsource_pos = self.mapFromItem(self.source_node, self.pos())
         ndest_pos = self.mapFromItem(self.dest_node, self.pos())
         
-        qpath = QtGui.QPainterPath()
-        self.setPath(qpath)
-                
-        line = QtCore.QLineF(nsource_pos, ndest_pos)
+        new_src_pos=QtCore.QPointF(nsource_pos.x()+(self.source_node.xsize/2),nsource_pos.y())
+        new_dst_pos=QtCore.QPointF(ndest_pos.x()-(self.dest_node.xsize/2),ndest_pos.y())
+        
+        
+        line = QtCore.QLineF(new_src_pos, new_dst_pos)
         
         if line.length() == 0.0:
             return
@@ -51,12 +83,26 @@ class ConnectionItem(QtGui.QGraphicsPathItem ):
         
         painter.drawLine(line)
 
+        # Draw the arrows if there's enough room.
+        angle = math.acos(line.dx() / line.length())
+        if line.dy() >= 0:
+            angle = self.TwoPi - angle
+
+        destArrowP1 = new_dst_pos + QtCore.QPointF(math.sin(angle - self.Pi / 3) * self.arrowSize,
+                                                      math.cos(angle - self.Pi / 3) * self.arrowSize)
+        destArrowP2 = new_dst_pos + QtCore.QPointF(math.sin(angle - self.Pi + self.Pi / 3) * self.arrowSize,
+                                                      math.cos(angle - self.Pi + self.Pi / 3) * self.arrowSize)
+
+        painter.setBrush(QtCore.Qt.black)
+        painter.drawPolygon(QtGui.QPolygonF([line.p2(), destArrowP1, destArrowP2]))
+
+
     def boundingRect(self):
         if not self.source_node or not self.dest_node:
             return QtCore.QRectF()
 
         penWidth = 2.0
-        extra = (penWidth/ 2.0)
+        extra = (penWidth + self.arrowSize) / 2.0
 
         return QtCore.QRectF(self.sourcePoint,
                              QtCore.QSizeF(self.destPoint.x() - self.sourcePoint.x(),
@@ -76,7 +122,6 @@ class NodeItem(QtGui.QGraphicsItem ):
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
         self.name=drq_job_object
             
-        self.setScale(1.4)
         self.rect=QtCore.QRectF(-self.xsize/2,-self.ysize/2,self.xsize,self.ysize)
     
     def set_name(self,name="Node"):
@@ -258,28 +303,9 @@ class NodeViewer(QtGui.QDialog):
         self.layout = QtGui.QVBoxLayout()
         self.setLayout(self.layout)
         self.setWindowTitle("Node Viewer")
-
         
     def add_graph(self,G):
         self.view = DrawQt(Graph=G,parent=self)
         self.layout.addWidget(self.view)    
-    
-               
-def main():
-    app = QtGui.QApplication(sys.argv)
-    
-    splash_image=QtGui.QPixmap("splash.jpg")
-    splash=QtGui.QSplashScreen(splash_image)
-    splash.show()
-    
-    app.processEvents()
-    
-    dialog = NodeViewer()
-    dialog.show()
-    sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    main()       
-
 
 

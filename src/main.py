@@ -51,7 +51,6 @@ def main():
     
     G=DRAW_GRAPH()
     dialog.add_graph(G)
-    dialog.add_graph(G)
     
     dialog.show()
     sys.exit(app.exec_())
