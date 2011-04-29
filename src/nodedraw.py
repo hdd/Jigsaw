@@ -280,9 +280,7 @@ class DrawQt(QtGui.QGraphicsView):
     def __add_nodes(self):
         nodes = self.__graph.nodes()
         prev_pos=QtCore.QPointF(0,0)
-        
-        root_nodes=[]
-        
+    
         for n in nodes:
             if n:
                 log.debug("creating node %s"%n)
@@ -309,23 +307,24 @@ class DrawQt(QtGui.QGraphicsView):
                 self.__scene.addItem(connection)
 
     def mousePressEvent(self,mouseEvent):
-        super(DrawQt,self).mousePressEvent(mouseEvent)
         start_mouse_item = self.itemAt(mouseEvent.pos())
         
         if isinstance(start_mouse_item,NodeItem):
             log.debug("on node %s"%start_mouse_item)
             start_mouse_item.set_border_color(switch=1)
+            
         self.update()
-                    
+        super(DrawQt,self).mousePressEvent(mouseEvent)
+        
     def mouseReleaseEvent(self,mouseEvent):
         start_mouse_item = self.itemAt(mouseEvent.pos())
         if isinstance(start_mouse_item,NodeItem):
             log.debug("on node %s"%start_mouse_item)
             start_mouse_item.set_border_color(switch=0)
             
-        super(DrawQt,self).mouseReleaseEvent(mouseEvent)      
         self.update()
-                 
+        super(DrawQt,self).mouseReleaseEvent(mouseEvent)
+        
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, event.delta() / 240.0))
         
