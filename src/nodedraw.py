@@ -151,7 +151,7 @@ class NodeScene(QtGui.QGraphicsScene):
         super(NodeScene,self).__init__(parent)
         self.line=None
         self.line_mode=False
-
+        
     def mousePressEvent(self, mouseEvent):
         
         if (mouseEvent.button() == QtCore.Qt.RightButton):
@@ -303,6 +303,7 @@ class NodeViewer(QtGui.QDialog):
         self.layout = QtGui.QVBoxLayout()
         self.setLayout(self.layout)
         self.setWindowTitle("Node Viewer")
+        self.setWindowFlags(QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowMaximizeButtonHint|QtCore.Qt.WindowCloseButtonHint)
         
     def add_graph(self,G):
         self.view = DrawQt(Graph=G,parent=self)
