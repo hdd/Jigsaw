@@ -70,8 +70,8 @@ class ConnectionItem(QtGui.QGraphicsPathItem ):
         nsource_pos = self.mapFromItem(self.source_node, self.pos())
         ndest_pos = self.mapFromItem(self.dest_node, self.pos())
         
-        new_src_pos=QtCore.QPointF(nsource_pos.x()+(self.source_node.xsize/2),nsource_pos.y())
-        new_dst_pos=QtCore.QPointF(ndest_pos.x()-(self.dest_node.xsize/2),ndest_pos.y())
+        new_src_pos=QtCore.QPointF(nsource_pos.x()+(self.source_node.xsize/2)+5,nsource_pos.y())
+        new_dst_pos=QtCore.QPointF(ndest_pos.x()-(self.dest_node.xsize/2)-5,ndest_pos.y())
         
         
         line = QtCore.QLineF(new_src_pos, new_dst_pos)
@@ -88,16 +88,24 @@ class ConnectionItem(QtGui.QGraphicsPathItem ):
         angle = math.acos(line.dx() / line.length())
         if line.dy() >= 0:
             angle = self.TwoPi - angle
-
+        
         destArrowP1 = new_dst_pos + QtCore.QPointF(math.sin(angle - self.Pi / 3) * self.arrowSize,
                                                       math.cos(angle - self.Pi / 3) * self.arrowSize)
         destArrowP2 = new_dst_pos + QtCore.QPointF(math.sin(angle - self.Pi + self.Pi / 3) * self.arrowSize,
                                                       math.cos(angle - self.Pi + self.Pi / 3) * self.arrowSize)
-
+        
+        
+        #painter.drawEllipse(line.p2(),3,3)
+        
+        painter.drawEllipse(new_dst_pos,5,5)
+        
         painter.setBrush(QtCore.Qt.black)
         painter.drawPolygon(QtGui.QPolygonF([line.p2(), destArrowP1, destArrowP2]))
+        
         painter.drawEllipse(new_src_pos,5,5)
-
+        
+        super(ConnectionItem,self).paint( painter, option, widget)
+        
     def boundingRect(self):
         if not self.source_node or not self.dest_node:
             return QtCore.QRectF()
@@ -308,12 +316,11 @@ class DrawQt(QtGui.QGraphicsView):
 
     def mousePressEvent(self,mouseEvent):
         start_mouse_item = self.itemAt(mouseEvent.pos())
-        
-        if isinstance(start_mouse_item,NodeItem):
-            log.debug("on node %s"%start_mouse_item)
-            start_mouse_item.set_border_color(switch=1)
-            
-        self.update()
+        if (mouseEvent.button() == QtCore.Qt.LeftButton):        
+            if isinstance(start_mouse_item,NodeItem):
+                log.debug("on node %s"%start_mouse_item)
+                start_mouse_item.set_border_color(switch=1)
+                
         super(DrawQt,self).mousePressEvent(mouseEvent)
         
     def mouseReleaseEvent(self,mouseEvent):
@@ -322,8 +329,15 @@ class DrawQt(QtGui.QGraphicsView):
             log.debug("on node %s"%start_mouse_item)
             start_mouse_item.set_border_color(switch=0)
             
-        self.update()
         super(DrawQt,self).mouseReleaseEvent(mouseEvent)
+        
+    def mouseMoveEvent(self,mouseEvent):   
+        
+        if (mouseEvent.button() == QtCore.Qt.MidButton):               
+            log.debug("DrawQt MouseMove")
+            self.setCursor(QtCore.Qt.ClosedHandCursor)
+            
+        super(DrawQt,self).mouseMoveEvent(mouseEvent)
         
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, event.delta() / 240.0))
