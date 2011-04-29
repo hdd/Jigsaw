@@ -23,7 +23,8 @@ class ConnectionItem(QtGui.QGraphicsPathItem ):
     def __init__(self,source_node =None, dest_node=None,parent=None):
         super(ConnectionItem,self).__init__(parent)
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
-        
+        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable)
+                
         self.arrowSize = 10.0
         
         self.sourcePoint = QtCore.QPointF()
@@ -95,7 +96,7 @@ class ConnectionItem(QtGui.QGraphicsPathItem ):
 
         painter.setBrush(QtCore.Qt.black)
         painter.drawPolygon(QtGui.QPolygonF([line.p2(), destArrowP1, destArrowP2]))
-
+        painter.drawEllipse(new_src_pos,5,5)
 
     def boundingRect(self):
         if not self.source_node or not self.dest_node:
@@ -109,7 +110,7 @@ class ConnectionItem(QtGui.QGraphicsPathItem ):
                                            self.destPoint.y() - self.sourcePoint.y())).normalized().adjusted(-extra, -extra, extra, extra)
 
 
-class NodeItem(QtGui.QGraphicsItem ):
+class NodeItem(QtGui.QGraphicsItem):
     xsize=120.0
     ysize=30.0
     
@@ -117,12 +118,26 @@ class NodeItem(QtGui.QGraphicsItem ):
         super(NodeItem,self).__init__(parent)
         
         self._drq_job_object = drq_job_object
-
+        self._border_color=QtGui.QColor(QtCore.Qt.black)
+        
         self.setFlag(QtGui.QGraphicsItem.ItemIsFocusable)
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
+        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable)
+
         self.name=drq_job_object
             
         self.rect=QtCore.QRectF(-self.xsize/2,-self.ysize/2,self.xsize,self.ysize)
+    
+    def set_border_color(self,switch=0):
+        color=QtCore.Qt.black
+        
+        if switch:
+            color=QtCore.Qt.red
+        
+        self._border_color=QtGui.QColor(color)
+        self.update()
+    
+    
     
     def set_name(self,name="Node"):
         self.name=name
@@ -132,7 +147,7 @@ class NodeItem(QtGui.QGraphicsItem ):
 
     def paint(self, painter, option, widget):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        painter.setPen(QtGui.QPen(QtCore.Qt.black, 1))
+        painter.setPen(QtGui.QPen(self._border_color, 1))
         painter.setBrush(QtGui.QBrush(QtCore.Qt.gray, QtCore.Qt.SolidPattern))   
         painter.drawRoundedRect(self.rect,4,4)
         painter.setFont(QtGui.QFont("arial",4,3))
@@ -143,9 +158,6 @@ class NodeItem(QtGui.QGraphicsItem ):
 
                     
 class NodeScene(QtGui.QGraphicsScene):
-    
-    itemSelected = QtCore.pyqtSignal(QtGui.QGraphicsItem)
-    itemInserted = QtCore.pyqtSignal(NodeItem)
     
     def __init__(self,parent=None):
         super(NodeScene,self).__init__(parent)
@@ -186,7 +198,6 @@ class NodeScene(QtGui.QGraphicsScene):
             log.debug("left click mouse Press event")
             self.line_mode=False
             
-
         super(NodeScene, self).mousePressEvent(mouseEvent)
 
     def mouseMoveEvent(self, mouseEvent):
@@ -195,6 +206,7 @@ class NodeScene(QtGui.QGraphicsScene):
             self.line.setLine(newLine)
         else:
             super(NodeScene, self).mouseMoveEvent(mouseEvent)
+
         self.update()
 
     def mouseReleaseEvent(self, mouseEvent):
@@ -204,6 +216,7 @@ class NodeScene(QtGui.QGraphicsScene):
             
             startItems = self.items(self.line.line().p1())
             endItems = self.items(self.line.line().p2())
+            
             
             self.removeItem(self.line)
             self.line = None
@@ -215,6 +228,7 @@ class NodeScene(QtGui.QGraphicsScene):
                                                 
                 startItem_attr = startItems[-1]              
                 endItem_attr = endItems[-1]
+                
                 #print self.itemAt(endItem)
                 if not isinstance(endItem_attr,NodeItem):
                     log.debug("no other attribute found at the end point")
@@ -231,10 +245,8 @@ class NodeScene(QtGui.QGraphicsScene):
                 log.debug("create new connection from %s to %s"%(startItem, endItem))
                 
                 connection = ConnectionItem(startItem_attr, endItem_attr)
-#                startItem_attr.addConnection(connection)
-#                endItem_attr.addConnection(connection)
                 self.addItem(connection)
-                connection.update()
+                self.update()
                 
         self.line = None
         super(NodeScene, self).mouseReleaseEvent(mouseEvent)
@@ -267,14 +279,24 @@ class DrawQt(QtGui.QGraphicsView):
     
     def __add_nodes(self):
         nodes = self.__graph.nodes()
+        prev_pos=QtCore.QPointF(0,0)
+        
+        root_nodes=[]
+        
         for n in nodes:
             if n:
                 log.debug("creating node %s"%n)
                 job_node = NodeItem(drq_job_object=n)
-                self.__graph.node[n]["_qt_item"]=job_node
                 
+                successors = self.__graph.successors(n)
+                log.debug("successors of %s :: %s"%(n,":".join(successors)))
+                
+                job_node.setPos(prev_pos+QtCore.QPointF(250.0,0))
+                
+                self.__graph.node[n]["_qt_item"]=job_node
                 self.__scene.addItem(job_node)
                 self.__nodes.append(job_node)
+                prev_pos=job_node.pos()
     
     def __add_connections(self):
         edges=self.__graph.edges()
@@ -286,6 +308,24 @@ class DrawQt(QtGui.QGraphicsView):
                 connection = ConnectionItem(source_node,dest_node)
                 self.__scene.addItem(connection)
 
+    def mousePressEvent(self,mouseEvent):
+        super(DrawQt,self).mousePressEvent(mouseEvent)
+        start_mouse_item = self.itemAt(mouseEvent.pos())
+        
+        if isinstance(start_mouse_item,NodeItem):
+            log.debug("on node %s"%start_mouse_item)
+            start_mouse_item.set_border_color(switch=1)
+        self.update()
+                    
+    def mouseReleaseEvent(self,mouseEvent):
+        start_mouse_item = self.itemAt(mouseEvent.pos())
+        if isinstance(start_mouse_item,NodeItem):
+            log.debug("on node %s"%start_mouse_item)
+            start_mouse_item.set_border_color(switch=0)
+            
+        super(DrawQt,self).mouseReleaseEvent(mouseEvent)      
+        self.update()
+                 
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, event.delta() / 240.0))
         
@@ -305,6 +345,15 @@ class NodeViewer(QtGui.QDialog):
         self.setWindowTitle("Node Viewer")
         self.setWindowFlags(QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowMaximizeButtonHint|QtCore.Qt.WindowCloseButtonHint)
         
+        icon = QtGui.QLabel()
+        iconspath=os.path.join(os.path.dirname(__file__),"icons","jigsaw.png")
+        if not os.path.exists(iconspath):
+            log.warning("icon %s doesnt' exists"%iconspath)
+            
+        log.debug(iconspath)
+        icon.setPixmap(QtGui.QPixmap(iconspath))
+        self.layout.addWidget(icon)     
+           
     def add_graph(self,G):
         self.view = DrawQt(Graph=G,parent=self)
         self.layout.addWidget(self.view)    
