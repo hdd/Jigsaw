@@ -1,0 +1,1 @@
+Jigsaw is qt based framework that permits to visualize networkx graphs
