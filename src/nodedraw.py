@@ -155,13 +155,12 @@ class NodeItem(QtGui.QGraphicsItem):
 
     def paint(self, painter, option, widget):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        painter.setPen(QtGui.QPen(self._border_color, 1))
+
+        painter.setPen(QtGui.QPen(self._border_color, 1))                
         painter.setBrush(QtGui.QBrush(QtCore.Qt.gray, QtCore.Qt.SolidPattern))   
         painter.drawRoundedRect(self.rect,4,4)
-        painter.setFont(QtGui.QFont("arial",4,3))
-                
+        painter.setFont(QtGui.QFont("arial",4,3))                
         node_text=self.name
-
         painter.drawText(self.rect,node_text,QtGui.QTextOption(QtCore.Qt.AlignVCenter|QtCore.Qt.AlignHCenter))  
 
                     
@@ -276,6 +275,8 @@ class DrawQt(QtGui.QGraphicsView):
         
         self.__build_nodes()
         
+        self._last_point=QtCore.QPointF()
+        
     def __build_nodes(self):
         self.__create_qtscene()
         self.__add_nodes()
@@ -288,15 +289,12 @@ class DrawQt(QtGui.QGraphicsView):
     def __add_nodes(self):
         nodes = self.__graph.nodes()
         prev_pos=QtCore.QPointF(0,0)
-    
+        
         for n in nodes:
             if n:
                 log.debug("creating node %s"%n)
                 job_node = NodeItem(drq_job_object=n)
-                
-                successors = self.__graph.successors(n)
-                log.debug("successors of %s :: %s"%(n,":".join(successors)))
-                
+
                 job_node.setPos(prev_pos+QtCore.QPointF(250.0,0))
                 
                 self.__graph.node[n]["_qt_item"]=job_node
@@ -316,11 +314,14 @@ class DrawQt(QtGui.QGraphicsView):
 
     def mousePressEvent(self,mouseEvent):
         start_mouse_item = self.itemAt(mouseEvent.pos())
-        if (mouseEvent.button() == QtCore.Qt.LeftButton):        
+        
+        self._last_point=   mouseEvent.pos()
+        if (mouseEvent.button() == QtCore.Qt.LeftButton):       
             if isinstance(start_mouse_item,NodeItem):
                 log.debug("on node %s"%start_mouse_item)
                 start_mouse_item.set_border_color(switch=1)
-                
+        
+             
         super(DrawQt,self).mousePressEvent(mouseEvent)
         
     def mouseReleaseEvent(self,mouseEvent):
@@ -329,6 +330,7 @@ class DrawQt(QtGui.QGraphicsView):
             log.debug("on node %s"%start_mouse_item)
             start_mouse_item.set_border_color(switch=0)
             
+        self._last_point=QtCore.QPointF()    
         super(DrawQt,self).mouseReleaseEvent(mouseEvent)
         
     def mouseMoveEvent(self,mouseEvent):   

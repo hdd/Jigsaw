@@ -11,6 +11,7 @@ import PyQt4.QtGui as QtGui
 import hlog as log
 import nodedraw as nd
 
+
 def DRAW_GRAPH():
     G=nx.DiGraph()
     
@@ -57,7 +58,6 @@ def main():
     dialog = nd.NodeViewer()    
     G=DRAW_GRAPH()
     dialog.add_graph(G)  
-    dialog.add_graph(G)      
     dialog.show()
     sys.exit(app.exec_())
 
