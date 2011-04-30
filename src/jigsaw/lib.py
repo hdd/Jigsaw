@@ -1,3 +1,35 @@
+'''
+Copyright 2011 lorenzo angeli. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are
+permitted provided that the following conditions are met:
+
+   1. Redistributions of source code must retain the above copyright notice, this list of
+      conditions and the following disclaimer.
+
+   2. Redistributions in binary form must reproduce the above copyright notice, this list
+      of conditions and the following disclaimer in the documentation and/or other materials
+      provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY LORENZO ANGELI ``AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LORENZO ANGELI OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The views and conclusions contained in the software and documentation are those of the
+authors and should not be interpreted as representing official policies, either expressed
+or implied, of lorenzo angeli.
+'''
+
+__author__="Lorenzo Angeli"
+
+
+
 import sys
 import os
 import math
@@ -259,9 +291,9 @@ class NodeScene(QtGui.QGraphicsScene):
         super(NodeScene, self).mouseReleaseEvent(mouseEvent)
 
                                 
-class DrawQt(QtGui.QGraphicsView):
+class JigsawView(QtGui.QGraphicsView):
     def __init__(self, Graph=None,parent=None):
-        super(DrawQt,self).__init__(parent)
+        super(JigsawView,self).__init__(parent)
         log.debug("init DrawQt")
         
         self.__nodes=[]
@@ -322,7 +354,7 @@ class DrawQt(QtGui.QGraphicsView):
                 start_mouse_item.set_border_color(switch=1)
         
              
-        super(DrawQt,self).mousePressEvent(mouseEvent)
+        super(JigsawView,self).mousePressEvent(mouseEvent)
         
     def mouseReleaseEvent(self,mouseEvent):
         start_mouse_item = self.itemAt(mouseEvent.pos())
@@ -331,7 +363,7 @@ class DrawQt(QtGui.QGraphicsView):
             start_mouse_item.set_border_color(switch=0)
             
         self._last_point=QtCore.QPointF()    
-        super(DrawQt,self).mouseReleaseEvent(mouseEvent)
+        super(JigsawView,self).mouseReleaseEvent(mouseEvent)
         
     def mouseMoveEvent(self,mouseEvent):   
         
@@ -339,7 +371,7 @@ class DrawQt(QtGui.QGraphicsView):
             log.debug("DrawQt MouseMove")
             self.setCursor(QtCore.Qt.ClosedHandCursor)
             
-        super(DrawQt,self).mouseMoveEvent(mouseEvent)
+        super(JigsawView,self).mouseMoveEvent(mouseEvent)
         
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, event.delta() / 240.0))
@@ -352,25 +384,4 @@ class DrawQt(QtGui.QGraphicsView):
 
         self.scale(scaleFactor, scaleFactor)
                 
-class NodeViewer(QtGui.QDialog):
-    def __init__(self,parent=None):
-        super(NodeViewer,self).__init__(parent)
-        self.layout = QtGui.QVBoxLayout()
-        self.setLayout(self.layout)
-        self.setWindowTitle("Node Viewer")
-        self.setWindowFlags(QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowMaximizeButtonHint|QtCore.Qt.WindowCloseButtonHint)
-        
-        icon = QtGui.QLabel()
-        iconspath=os.path.join(os.path.dirname(__file__),"icons","jigsaw.png")
-        if not os.path.exists(iconspath):
-            log.warning("icon %s doesnt' exists"%iconspath)
-            
-        log.debug(iconspath)
-        icon.setPixmap(QtGui.QPixmap(iconspath))
-        self.layout.addWidget(icon)     
-           
-    def add_graph(self,G):
-        self.view = DrawQt(Graph=G,parent=self)
-        self.layout.addWidget(self.view)    
-
 
