@@ -112,4 +112,7 @@ def main():
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    main()       
+    try:
+        main()
+    except:
+        log.error("Jigsaw test failed...")       
