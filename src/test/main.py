@@ -42,7 +42,7 @@ import jigsaw.lib as nd
 
 
 def DRAW_GRAPH():
-    G=nx.DiGraph()
+    G=nx.DiGraph(name="Test")
     
     A="Test1"
     B="TestA"
@@ -82,7 +82,6 @@ class NodeViewer(QtGui.QDialog):
         super(NodeViewer,self).__init__(parent)
         self.layout = QtGui.QVBoxLayout()
         self.setLayout(self.layout)
-        self.setWindowTitle("Node Viewer")
         self.setWindowFlags(QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowMaximizeButtonHint|QtCore.Qt.WindowCloseButtonHint)
         
         icon = QtGui.QLabel()
@@ -90,12 +89,12 @@ class NodeViewer(QtGui.QDialog):
         if not os.path.exists(iconspath):
             log.warning("icon %s doesnt' exists"%iconspath)
             
-        log.debug(iconspath)
         icon.setPixmap(QtGui.QPixmap(iconspath))
         self.layout.addWidget(icon)     
            
     def add_graph(self,G):
         self.view = nd.JigsawView(Graph=G,parent=self)
+        self.setWindowTitle("Graph Viewer :: %s"%G.name)
         self.layout.addWidget(self.view)    
 
 def main():
@@ -112,6 +111,7 @@ def main():
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
+    log.info("starting jigsaw test")
     try:
         main()
     except:
