@@ -338,7 +338,7 @@ class JigsawView(QtGui.QGraphicsView):
         edges=self.__graph.edges()
         for e in edges:
             if e:
-                log.debug(e)
+                log.debug("creating connection %s"%"->".join(e))
                 source_node = self.__graph.node[e[0]]["_qt_item"]
                 dest_node= self.__graph.node[e[1]]["_qt_item"]
                 connection = ConnectionItem(source_node,dest_node)
