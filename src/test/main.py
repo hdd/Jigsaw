@@ -31,7 +31,7 @@ import os, sys
 import networkx as nx
 import math
 
-os.environ["DEBUG"]="1"
+os.environ["DEBUG"]="0"
 
 import PyQt4.QtCore as QtCore
 import PyQt4.QtGui as QtGui
@@ -95,7 +95,7 @@ class NodeViewer(QtGui.QDialog):
     def add_graph(self,G):
         self.view = nd.JigsawView(Graph=G,parent=self)
         self.setWindowTitle("Graph Viewer :: %s"%G.name)
-        self.layout.addWidget(self.view)    
+        self.layout.addWidget(self.view)
 
 def main():
     app = QtGui.QApplication(sys.argv)

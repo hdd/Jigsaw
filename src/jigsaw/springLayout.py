@@ -21,7 +21,7 @@ class SpringLayout(object):
 
     def __init__(self,G):
         self.graph=G
-        self.iterations=500
+        self.iterations=1000
         self.maxRepulsiveForceDistance = 6
         self.k=2
         self.c=0.01
@@ -42,7 +42,7 @@ class SpringLayout(object):
                 
         for edge in self.graph.edges():
             for attr in self.edge_attributes:
-                log.debug("edge %s"%(pformat(edge)))
+                log.debug("adding attr %s to edge %s"%(attr,pformat(edge)))
                 self.graph[edge[0]][edge[1]][attr]=0.0
                 
     def layout(self):
@@ -52,7 +52,7 @@ class SpringLayout(object):
         self.layoutCalcBounds()
         
     def get_updated_graph(self):
-        return self.graph.nodes(data=True)
+        return self.graph
         
     def layoutCalcBounds(self):
         minx=Infinity
@@ -161,44 +161,44 @@ class SpringLayout(object):
         node1["layoutForceY"] += attractiveForce * dy / d   
         
 
-import networkx as nx       
-def DRAW_GRAPH():
-    G=nx.DiGraph(name="Test")
-    
-    A="Test1"
-    B="TestA"
-    C="PIPPO"
-    D="PIPPA"
-    E="ENNIO"
-    F="ENNIO2"
+#import networkx as nx       
+#def DRAW_GRAPH():
+#    G=nx.DiGraph(name="Test")
+#    
+#    A="Test1"
+#    B="TestA"
+#    C="PIPPO"
+#    D="PIPPA"
+#    E="ENNIO"
+#    F="ENNIO2"
+#
+#    A1="Test2"
+#    B1="Test3"
+#    C1="PIPP4"
+#    D1="PIPP5"
+#    E1="ENNI6"
+#    F1="ENNIO7"
+#        
+#    G.add_node(A)
+#    G.add_node(B)
+#    G.add_edge(A,B)   
+#    
+#    G.add_node(C)
+#    G.add_edge(A,C)      
+#    
+#    G.add_node(D)
+#    G.add_edge(B,D)
+#
+#    G.add_node(E)
+#    G.add_node(F)
+#    
+#    G.add_edge(B,E)
+#    G.add_edge(D,F)
+#    
+#    return G     
 
-    A1="Test2"
-    B1="Test3"
-    C1="PIPP4"
-    D1="PIPP5"
-    E1="ENNI6"
-    F1="ENNIO7"
-        
-    G.add_node(A)
-    G.add_node(B)
-    G.add_edge(A,B)   
-    
-    G.add_node(C)
-    G.add_edge(A,C)      
-    
-    G.add_node(D)
-    G.add_edge(B,D)
-
-    G.add_node(E)
-    G.add_node(F)
-    
-    G.add_edge(B,E)
-    G.add_edge(D,F)
-    
-    return G     
-
-
-Spring = SpringLayout(DRAW_GRAPH())
-Spring.layout()
-ret_pos= Spring.get_updated_graph()
-log.info(pformat(ret_pos))
+#
+#Spring = SpringLayout(DRAW_GRAPH())
+#Spring.layout()
+#ret_pos= Spring.get_updated_graph()
+#log.info(pformat(ret_pos))

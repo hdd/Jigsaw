@@ -34,6 +34,7 @@ import sys
 import os
 import math
 import random
+from pprint import pformat
 
 os.environ["DEBUG"]="1"
 
@@ -45,6 +46,9 @@ except:
 
 import PyQt4.QtGui as QtGui
 import PyQt4.QtCore as QtCore
+      
+      
+from springLayout import SpringLayout
       
 class ConnectionItem(QtGui.QGraphicsPathItem ):
         
@@ -319,15 +323,24 @@ class JigsawView(QtGui.QGraphicsView):
         self.setScene(self.__scene)     
     
     def __add_nodes(self):
-        nodes = self.__graph.nodes()
+        
+        S=SpringLayout(self.__graph)
+        S.layout()
+        upd_graph=S.get_updated_graph()
+        self.__graph=upd_graph
+        nodes = upd_graph.nodes()        
         prev_pos=QtCore.QPointF(0,0)
         
         for n in nodes:
             if n:
                 log.debug("creating node %s"%n)
                 job_node = NodeItem(drq_job_object=n)
-
-                job_node.setPos(prev_pos+QtCore.QPointF(250.0,0))
+                
+                xpos= self.__graph.node[n]["layoutPosX"]
+                ypos= self.__graph.node[n]["layoutPosY"]
+                
+                log.info("%s %s"%(xpos,ypos))
+                job_node.setPos(QtCore.QPointF(xpos*job_node.xsize,ypos*job_node.ysize))
                 
                 self.__graph.node[n]["_qt_item"]=job_node
                 self.__scene.addItem(job_node)
