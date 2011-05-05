@@ -26,8 +26,6 @@ class SpringLayout(object):
         self.k=2
         self.c=0.01
         self.maxVertexMovement = 0.5
-        self.nodes=self.graph.nodes()
-        self.edges=self.graph.edges()
         
         self.layoutMinX=0.0
         self.layoutMaxX=0.0
@@ -37,12 +35,12 @@ class SpringLayout(object):
         
         
     def layoutPrepare(self):
-        for node in self.nodes:
+        for node in self.graph.nodes():
             for attr in self.node_attributes:
                 self.graph.node[node][attr]=0.0
                 log.debug("adding to node %s -> attr:%s =%s"%(node,attr,self.graph.node[node][attr]))
                 
-        for edge in self.edges:
+        for edge in self.graph.edges():
             for attr in self.edge_attributes:
                 log.debug("edge %s"%(pformat(edge)))
                 self.graph[edge[0]][edge[1]][attr]=0.0
@@ -52,7 +50,9 @@ class SpringLayout(object):
         for i in range(self.iterations):
             self.layoutIteration()
         self.layoutCalcBounds()
-        print pformat(self.graph.nodes(data=True))
+        
+    def get_updated_graph(self):
+        return self.graph.nodes(data=True)
         
     def layoutCalcBounds(self):
         minx=Infinity
@@ -60,7 +60,7 @@ class SpringLayout(object):
         miny=Infinity
         maxy=-Infinity
         
-        for node in self.nodes:
+        for node in self.graph.nodes():
             
 
             x=self.graph.node[node]["layoutPosX"]
@@ -79,20 +79,20 @@ class SpringLayout(object):
         
     def layoutIteration(self):
         #    Forces on nodes due to node-node repulsions
-        for i in range(len(self.nodes)):
-            node1=self.nodes[i]
+        for i in range(len(self.graph.nodes())):
+            node1=self.graph.nodes()[i]
             j = i+1
-            for j in range(len(self.nodes)):
-                node2=self.nodes[j]
+            for j in range(len(self.graph.nodes())):
+                node2=self.graph.nodes()[j]
                 log.debug("repulsive on %s %s "%(node1,node2))
                 self.layoutRepulsive(node1,node2)
         #    Forces on nodes due to edge attractions        
-        for i in range(len(self.edges)):
-            edge=self.edges[i]
+        for i in range(len(self.graph.edges())):
+            edge=self.graph.edges()[i]
             self.layoutAttractive(edge)
 
         # Move by the given force
-        for node in self.nodes:
+        for node in self.graph.nodes():
             xmove=self.c * self.graph.node[node]["layoutForceX"]   
             ymove=self.c * self.graph.node[node]["layoutForceY"]    
             
@@ -200,3 +200,5 @@ def DRAW_GRAPH():
 
 Spring = SpringLayout(DRAW_GRAPH())
 Spring.layout()
+ret_pos= Spring.get_updated_graph()
+log.info(pformat(ret_pos))
