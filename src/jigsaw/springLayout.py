@@ -21,7 +21,7 @@ class SpringLayout(object):
 
     def __init__(self,G):
         self.graph=G
-        self.iterations=1000
+        self.iterations=500
         self.maxRepulsiveForceDistance = 6
         self.k=2
         self.c=0.01
@@ -81,8 +81,8 @@ class SpringLayout(object):
         #    Forces on nodes due to node-node repulsions
         for i in range(len(self.graph.nodes())):
             node1=self.graph.nodes()[i]
-            j = i+1
-            for j in range(len(self.graph.nodes())):
+            jj=i
+            for j in range(jj,len(self.graph.nodes())):
                 node2=self.graph.nodes()[j]
                 log.debug("repulsive on %s %s "%(node1,node2))
                 self.layoutRepulsive(node1,node2)
@@ -106,22 +106,25 @@ class SpringLayout(object):
             self.graph.node[node]["layoutPosX"] += xmove
             self.graph.node[node]["layoutPosY"] += xmove
             
-            self.graph.node[node]["layoutForceX"] =0
-            self.graph.node[node]["layoutForceY"] =0
+            self.graph.node[node]["layoutForceX"] =0.0
+            self.graph.node[node]["layoutForceY"] =0.0
             
     def layoutRepulsive(self,node1,node2):
-        dx=self.graph.node[node1]["layoutPosX"] - self.graph.node[node2]["layoutPosX"]        
-        dy=self.graph.node[node1]["layoutPosY"] - self.graph.node[node2]["layoutPosY"]     
+        dx=self.graph.node[node2]["layoutPosX"] - self.graph.node[node1]["layoutPosX"]        
+        dy=self.graph.node[node2]["layoutPosY"] - self.graph.node[node1]["layoutPosY"]
+         
+        log.debug("repulsive dx %s dy %s"%(dx,dy))  
         d2=dx*dx+dy*dy
         
-        if d2 < 0.01:
-            dx=0.1 + random.random()+ 0.1
-            dy=0.1 + random.random()+ 0.1
+        if d2 < 100.0:
+            dx=100.0 + random.random()*100.0 + 100.0
+            dy=100.0 + random.random()*100.0 + 100.0
             d2=dx*dx+dy*dy
             
         d= math.sqrt(d2)
         if d < self.maxRepulsiveForceDistance:
             repulsiveForce = self.k * self.k / d
+            
             self.graph.node[node2]["layoutForceX"] += repulsiveForce *dx/d
             self.graph.node[node2]["layoutForceY"]  += repulsiveForce *dy/d
             
@@ -136,12 +139,13 @@ class SpringLayout(object):
         dx=node2["layoutPosX"] - node1["layoutPosX"]
         dy=node2["layoutPosY"] - node1["layoutPosY"]
         
+        log.debug("attractive dx %s dy %s"%(dx,dy))
         d2=dx*dx + dy*dy
         
-        if d2 < 0.01:
-            dx=0.1 + random.random()+ 0.1
-            dy=0.1 + random.random()+ 0.1
-            d2=dx*dx+dy*dy        
+        if d2 < 100.0:
+            dx=100.0 + random.random()*100.0 +100.0
+            dy=100.0 + random.random()*100.0 + 100.0
+            d2=dx*dx+dy*dy      
                 
         d= math.sqrt(d2)    
         if d > self.maxRepulsiveForceDistance:
@@ -152,8 +156,11 @@ class SpringLayout(object):
             
         log.debug("edge weight : %s "%self.graph[edge[0]][edge[1]]["weight"])
         
-        if not self.graph[edge[0]][edge[1]]["weight"] or self.graph[edge[0]][edge[1]]["weight"] < 1 :  self.graph[edge[0]][edge[1]]["weight"] = 1
-        
+        if not self.graph[edge[0]][edge[1]]["weight"] or self.graph[edge[0]][edge[1]]["weight"] < 1.0 :  
+            self.graph[edge[0]][edge[1]]["weight"] = 1.0
+ 
+        attractiveForce *= math.log(self.graph[edge[0]][edge[1]]["weight"]) * 0.5 + 1;
+       
         node2["layoutForceX"] -= attractiveForce * dx / d
         node2["layoutForceY"] -= attractiveForce * dy / d
 

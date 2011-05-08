@@ -77,14 +77,28 @@ def DRAW_GRAPH():
     return G
 
 
+
+class AttributesWidget(QtGui.QWidget):
+    def __init__(self,parent=None):
+        super(AttributesWidget,self).__init__(parent)
+        self.layout = QtGui.QVBoxLayout(self)
+        self.group = QtGui.QGroupBox("Attributes")
+        self.layout.addWidget(self.group)
+        
+        
+
 class NodeViewer(QtGui.QDialog):
     def __init__(self,parent=None):
         super(NodeViewer,self).__init__(parent)
+
         self.layout = QtGui.QVBoxLayout()
         self.setLayout(self.layout)
+        self.attrLayout=QtGui.QHBoxLayout()
+        
         self.setWindowFlags(QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowMaximizeButtonHint|QtCore.Qt.WindowCloseButtonHint)
         
         icon = QtGui.QLabel()
+        icon.setMaximumSize(1000, 100)
         iconspath=os.path.join(os.path.dirname(__file__),"icons","jigsaw.png")
         if not os.path.exists(iconspath):
             log.warning("icon %s doesnt' exists"%iconspath)
@@ -93,10 +107,16 @@ class NodeViewer(QtGui.QDialog):
         self.layout.addWidget(icon)     
            
     def add_graph(self,G):
+        vsplitter=QtGui.QSplitter(self)
+        vsplitter.setOrientation( QtCore.Qt.Horizontal )        
+        
+        hlayout=QtGui.QHBoxLayout()
+        self.layout.addLayout(hlayout)
         self.view = nd.JigsawView(Graph=G,parent=self)
-        self.setWindowTitle("Graph Viewer :: %s"%G.name)
-        self.layout.addWidget(self.view)
-
+        hlayout.addWidget(vsplitter)
+        vsplitter.addWidget(self.view)
+        vsplitter.addWidget(AttributesWidget())
+         
 def main():
     app = QtGui.QApplication(sys.argv)
     splash_image=QtGui.QPixmap("splash.jpg")
@@ -112,7 +132,5 @@ def main():
 
 if __name__ == "__main__":
     log.info("starting jigsaw test")
-    try:
-        main()
-    except:
-        log.error("Jigsaw test failed...")       
+    main()
+     

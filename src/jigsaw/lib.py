@@ -331,6 +331,8 @@ class JigsawView(QtGui.QGraphicsView):
         nodes = upd_graph.nodes()        
         prev_pos=QtCore.QPointF(0,0)
         
+        mult=10
+        
         for n in nodes:
             if n:
                 log.debug("creating node %s"%n)
@@ -338,9 +340,14 @@ class JigsawView(QtGui.QGraphicsView):
                 
                 xpos= self.__graph.node[n]["layoutPosX"]
                 ypos= self.__graph.node[n]["layoutPosY"]
-                
-                log.info("%s %s"%(xpos,ypos))
-                job_node.setPos(QtCore.QPointF(xpos*job_node.xsize,ypos*job_node.ysize))
+#                
+#                log.info("xpos %s ypos %s"%(xpos,ypos))
+#                log.info("xsize %s ysizze %s"%(job_node.xsize,job_node.ysize))
+#                
+                out_pos=((xpos+job_node.xsize)*mult,(ypos+job_node.ysize)*mult)
+                log.debug("final output %s %s"%(out_pos[0],out_pos[1]))
+               
+                job_node.setPos(QtCore.QPointF(out_pos[0],out_pos[1]))
                 
                 self.__graph.node[n]["_qt_item"]=job_node
                 self.__scene.addItem(job_node)
@@ -359,16 +366,15 @@ class JigsawView(QtGui.QGraphicsView):
 
     def mousePressEvent(self,mouseEvent):
         start_mouse_item = self.itemAt(mouseEvent.pos())
-        
         self._last_point=   mouseEvent.pos()
         if (mouseEvent.button() == QtCore.Qt.LeftButton):       
             if isinstance(start_mouse_item,NodeItem):
                 log.debug("on node %s"%start_mouse_item)
                 start_mouse_item.set_border_color(switch=1)
-        
              
         super(JigsawView,self).mousePressEvent(mouseEvent)
         
+    
     def mouseReleaseEvent(self,mouseEvent):
         start_mouse_item = self.itemAt(mouseEvent.pos())
         if isinstance(start_mouse_item,NodeItem):
